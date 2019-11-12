@@ -108,13 +108,11 @@ outputView model =
   case model.output of
     Right (m, n) ->
       div []
-        [ p []
-          [ small [style "margin-right" "10px"] [ text <| "(" ++ (String.fromInt <| Either.fromRight 0 model.srcABV1.value) ++ "%)" ]
-          , text (String.fromInt m)
-          , text ":"
-          , text (String.fromInt n)
-          , small [style "margin-left" "10px"] [ text <| "(" ++  (String.fromInt <| Either.fromRight 0 model.srcABV2.value) ++ "%)" ]
-          ]
+        [ small [style "margin-right" "10px"] [ text <| "(" ++ (String.fromInt <| Either.fromRight 0 model.srcABV1.value) ++ "%)" ]
+        , text (String.fromInt m)
+        , text ":"
+        , text (String.fromInt n)
+        , small [style "margin-left" "10px"] [ text <| "(" ++  (String.fromInt <| Either.fromRight 0 model.srcABV2.value) ++ "%)" ]
         ]
     Left err ->
       div []
@@ -123,7 +121,7 @@ outputView model =
 
 view : Model -> Html Msg
 view model =
-  div []
+  div [style "padding" "10px"]
     [ abvInputView "A" ChangeABV1 model.srcABV1
     , abvInputView "B" ChangeABV2 model.srcABV2
     , abvInputView "C" ChangeTargetABV model.targetABV

@@ -5429,39 +5429,33 @@ var $author$project$Main$outputView = function (model) {
 			_List_fromArray(
 				[
 					A2(
-					$elm$html$Html$p,
-					_List_Nil,
+					$elm$html$Html$small,
 					_List_fromArray(
 						[
-							A2(
-							$elm$html$Html$small,
-							_List_fromArray(
-								[
-									A2($elm$html$Html$Attributes$style, 'margin-right', '10px')
-								]),
-							_List_fromArray(
-								[
-									$elm$html$Html$text(
-									'(' + ($elm$core$String$fromInt(
-										A2($toastal$either$Either$fromRight, 0, model.srcABV1.value)) + '%)'))
-								])),
+							A2($elm$html$Html$Attributes$style, 'margin-right', '10px')
+						]),
+					_List_fromArray(
+						[
 							$elm$html$Html$text(
-							$elm$core$String$fromInt(m)),
-							$elm$html$Html$text(':'),
+							'(' + ($elm$core$String$fromInt(
+								A2($toastal$either$Either$fromRight, 0, model.srcABV1.value)) + '%)'))
+						])),
+					$elm$html$Html$text(
+					$elm$core$String$fromInt(m)),
+					$elm$html$Html$text(':'),
+					$elm$html$Html$text(
+					$elm$core$String$fromInt(n)),
+					A2(
+					$elm$html$Html$small,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'margin-left', '10px')
+						]),
+					_List_fromArray(
+						[
 							$elm$html$Html$text(
-							$elm$core$String$fromInt(n)),
-							A2(
-							$elm$html$Html$small,
-							_List_fromArray(
-								[
-									A2($elm$html$Html$Attributes$style, 'margin-left', '10px')
-								]),
-							_List_fromArray(
-								[
-									$elm$html$Html$text(
-									'(' + ($elm$core$String$fromInt(
-										A2($toastal$either$Either$fromRight, 0, model.srcABV2.value)) + '%)'))
-								]))
+							'(' + ($elm$core$String$fromInt(
+								A2($toastal$either$Either$fromRight, 0, model.srcABV2.value)) + '%)'))
 						]))
 				]));
 	} else {
@@ -5484,7 +5478,10 @@ var $author$project$Main$outputView = function (model) {
 var $author$project$Main$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
-		_List_Nil,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'padding', '10px')
+			]),
 		_List_fromArray(
 			[
 				A3($author$project$Main$abvInputView, 'A', $author$project$Main$ChangeABV1, model.srcABV1),
