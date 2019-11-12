@@ -18,7 +18,7 @@ type alias Model =
   { srcABV1 : ABVInput
   , srcABV2 : ABVInput
   , targetABV : ABVInput
-  , ratio : Either String (Int, Int)
+  , output : Either String (Int, Int)
   }
 
 
@@ -73,7 +73,7 @@ calcRatio_ a b c =
 
 
 recalcRatio model =
-  { model | ratio = calcRatio model}
+  { model | output = calcRatio model}
 
 
 update : Msg -> Model -> Model
@@ -104,8 +104,8 @@ abvInputView title f input =
       inputView title f (String.fromInt v) ""
 
 
-ratioView model =
-  case model.ratio of
+outputView model =
+  case model.output of
     Right (m, n) ->
       div []
         [ p []
@@ -127,7 +127,7 @@ view model =
     [ abvInputView "A" ChangeABV1 model.srcABV1
     , abvInputView "B" ChangeABV2 model.srcABV2
     , abvInputView "C" ChangeTargetABV model.targetABV
-    , ratioView model
+    , outputView model
     ]
 
 
@@ -136,7 +136,7 @@ init =
   { srcABV1 = ABVInput (Right 12) ""
   , srcABV2 = ABVInput (Right 40) ""
   , targetABV = ABVInput (Right 16) ""
-  , ratio = Right (6, 1)
+  , output = Right (6, 1)
   }
 
 
