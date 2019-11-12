@@ -1,11 +1,12 @@
 module Main exposing (..)
 
 import Browser
-import Html exposing (Html, button, div, text, p, input)
+import Html exposing (Html, button, div, text, p, input, small, span)
 import Html.Events exposing (onInput)
-import Html.Attributes exposing (value)
+import Html.Attributes exposing (value, style)
 import Maybe
 import Either exposing (Either(..))
+import Debug
 
 
 type alias ABVInput =
@@ -27,54 +28,49 @@ type Msg
   | ChangeTargetABV String
 
 
-init : Model
-init =
-  { srcABV1 = ABVInput (Right 12) ""
-  , srcABV2 = ABVInput (Right 40) ""
-  , targetABV = ABVInput (Right 16) ""
-  , ratio = Right (6, 1)
-  }
-
 abvInputFromString s =
   case String.toInt s of
     Just i ->
       ABVInput (Right i) ""
     Nothing ->
-      ABVInput (Left s) "Invalid number."
+      ABVInput (Left s) "Invalid integer number."
 
 
-
-toMaybe : Either String Int -> Maybe Int
-toMaybe x =
-  case x of
-    Left _ ->
-      Nothing
-    Right v ->
-      Just v
-
-gcd : Int -> Int -> Int
-gcd a b = if b == 0 then a else gcd b (remainderBy a b)
-
--- x = (c - b) / (a - b)
 calcRatio model =
   let
-    a = toMaybe model.srcABV1.value
-    b = toMaybe model.srcABV2.value
-    c = toMaybe model.targetABV.value
-    num = Maybe.map2 (-) c b
-    den = Maybe.map2 (-) a b
+    a = Either.toMaybe model.srcABV1.value
+    b = Either.toMaybe model.srcABV2.value
+    c = Either.toMaybe model.targetABV.value
   in
-    case den of
-      Just 0 ->
-        Left "Source ABV values must be different."
+    case (Maybe.map3 calcRatio_ a b c) of
       Nothing ->
         Left "Not possible to caclulate."
-      Just d ->
-        case num of
-          Just n ->
-            Right (n, d - n)
-          Nothing ->
-            Left "Not possible to caclulate."
+      Just r ->
+        r
+
+
+gcd : Int -> Int -> Int
+gcd a b = if b == 0 then a else gcd b (remainderBy b a)
+
+
+-- x = (c - b) / (a - b)
+calcRatio_ a b c =
+  let
+    num = c - b
+    den = a - b
+    gcd_ = gcd den num
+    cond = ((a > c) && (c > b)) || ((b > c) && (c > a))
+  in
+    case den of
+      0 ->
+        Left "Source ABV-s must be different."
+      _ ->
+        case cond of
+          False ->
+            Left "Target ABV must be between the range of the two sources."
+          True ->
+            Right (num // gcd_, (den - num)  // gcd_)
+
 
 recalcRatio model =
   { model | ratio = calcRatio model}
@@ -91,42 +87,58 @@ update msg model =
       recalcRatio { model | targetABV = abvInputFromString s }
 
 
-
-inputView f v err =
+inputView title f v err =
   div []
-    [ input [ value v, onInput f ] []
+    [ span [style "margin-right" "5px"] [text title]
+    , input [ value v, onInput f ] []
+    , text "%"
     , p [] [text err]
     ]
 
 
-abvInputView f input =
+abvInputView title f input =
   case input.value of
     Left s ->
-      inputView f s input.error
+      inputView title f s input.error
     Right v ->
-      inputView f (String.fromInt v) ""
+      inputView title f (String.fromInt v) ""
 
 
 ratioView model =
   case model.ratio of
     Right (m, n) ->
       div []
-        [ p [] [text (String.fromInt m ++ ":" ++ String.fromInt n) ] ]
+        [ p []
+          [ small [style "margin-right" "10px"] [ text <| "(" ++ (String.fromInt <| Either.fromRight 0 model.srcABV1.value) ++ "%)" ]
+          , text (String.fromInt m)
+          , text ":"
+          , text (String.fromInt n)
+          , small [style "margin-left" "10px"] [ text <| "(" ++  (String.fromInt <| Either.fromRight 0 model.srcABV2.value) ++ "%)" ]
+          ]
+        ]
     Left err ->
       div []
         [ p [] [text err] ]
 
+
 view : Model -> Html Msg
 view model =
   div []
-    [ abvInputView ChangeABV1 model.srcABV1
-    , abvInputView ChangeABV2 model.srcABV2
-    , abvInputView ChangeTargetABV model.targetABV
+    [ abvInputView "A" ChangeABV1 model.srcABV1
+    , abvInputView "B" ChangeABV2 model.srcABV2
+    , abvInputView "C" ChangeTargetABV model.targetABV
     , ratioView model
     ]
 
 
+init : Model
+init =
+  { srcABV1 = ABVInput (Right 12) ""
+  , srcABV2 = ABVInput (Right 40) ""
+  , targetABV = ABVInput (Right 16) ""
+  , ratio = Right (6, 1)
+  }
+
+
 main =
   Browser.sandbox { init = init, update = update, view = view }
-
-
