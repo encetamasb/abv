@@ -5407,16 +5407,30 @@ var $author$project$Main$abvInputView = F3(
 				'');
 		}
 	});
-var $toastal$either$Either$fromRight = F2(
-	function (d, e) {
-		if (e.$ === 'Right') {
-			var b = e.a;
-			return b;
-		} else {
-			return d;
-		}
-	});
+var $elm$core$String$cons = _String_cons;
+var $elm$core$String$fromChar = function (_char) {
+	return A2($elm$core$String$cons, _char, '');
+};
+var $elm$core$Char$fromCode = _Char_fromCode;
+var $joshforisha$elm_html_entities$Html$Entity$entity = function (codes) {
+	return A2(
+		$elm$core$String$join,
+		'',
+		A2(
+			$elm$core$List$map,
+			A2($elm$core$Basics$composeR, $elm$core$Char$fromCode, $elm$core$String$fromChar),
+			codes));
+};
+var $joshforisha$elm_html_entities$Html$Entity$rArr = $joshforisha$elm_html_entities$Html$Entity$entity(
+	_List_fromArray(
+		[8658]));
 var $elm$html$Html$small = _VirtualDom_node('small');
+var $elm$html$Html$strong = _VirtualDom_node('strong');
+var $elm$core$Basics$round = _Basics_round;
+var $author$project$Main$toPercent = F2(
+	function (x, y) {
+		return $elm$core$Basics$round((x / y) * 100);
+	});
 var $author$project$Main$outputView = function (model) {
 	var _v0 = model.output;
 	if (_v0.$ === 'Right') {
@@ -5428,17 +5442,26 @@ var $author$project$Main$outputView = function (model) {
 			_List_Nil,
 			_List_fromArray(
 				[
+					$elm$html$Html$text($joshforisha$elm_html_entities$Html$Entity$rArr),
 					A2(
 					$elm$html$Html$small,
 					_List_fromArray(
 						[
+							A2($elm$html$Html$Attributes$style, 'margin-left', '5px'),
 							A2($elm$html$Html$Attributes$style, 'margin-right', '10px')
 						]),
 					_List_fromArray(
 						[
+							A2(
+							$elm$html$Html$strong,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text('A ')
+								])),
 							$elm$html$Html$text(
-							'(' + ($elm$core$String$fromInt(
-								A2($toastal$either$Either$fromRight, 0, model.srcABV1.value)) + '%)'))
+							'(~' + ($elm$core$String$fromInt(
+								A2($author$project$Main$toPercent, m, m + n)) + '%)'))
 						])),
 					$elm$html$Html$text(
 					$elm$core$String$fromInt(m)),
@@ -5454,8 +5477,15 @@ var $author$project$Main$outputView = function (model) {
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							'(' + ($elm$core$String$fromInt(
-								A2($toastal$either$Either$fromRight, 0, model.srcABV2.value)) + '%)'))
+							'(~' + ($elm$core$String$fromInt(
+								100 - A2($author$project$Main$toPercent, m, m + n)) + '%)')),
+							A2(
+							$elm$html$Html$strong,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text(' B')
+								]))
 						]))
 				]));
 	} else {

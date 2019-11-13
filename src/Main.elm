@@ -1,12 +1,13 @@
 module Main exposing (..)
 
 import Browser
-import Html exposing (Html, button, div, text, p, input, small, span)
+import Html exposing (Html, button, div, text, p, input, small, span, strong)
 import Html.Events exposing (onInput)
 import Html.Attributes exposing (value, style)
 import Maybe
 import Either exposing (Either(..))
 import Debug
+import Html.Entity exposing (rArr)
 
 
 type alias ABVInput =
@@ -104,15 +105,19 @@ abvInputView title f input =
       inputView title f (String.fromInt v) ""
 
 
+toPercent : Int -> Int -> Int
+toPercent x y = round <| (toFloat x / toFloat y) * 100
+
 outputView model =
   case model.output of
     Right (m, n) ->
       div []
-        [ small [style "margin-right" "10px"] [ text <| "(" ++ (String.fromInt <| Either.fromRight 0 model.srcABV1.value) ++ "%)" ]
+        [ text rArr
+        , small [style "margin-left" "5px", style "margin-right" "10px"] [ strong [] [text "A "], text <| "(~" ++ (String.fromInt <| toPercent m (m + n) ) ++ "%)" ]
         , text (String.fromInt m)
         , text ":"
         , text (String.fromInt n)
-        , small [style "margin-left" "10px"] [ text <| "(" ++  (String.fromInt <| Either.fromRight 0 model.srcABV2.value) ++ "%)" ]
+        , small [style "margin-left" "10px"] [ text <| "(~" ++  (String.fromInt <| 100 - toPercent m (m + n) ) ++ "%)", strong [] [text " B"] ]
         ]
     Left err ->
       div []
