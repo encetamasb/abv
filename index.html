@@ -4408,23 +4408,23 @@ var $author$project$Main$ABVInput = F2(
 	function (value, error) {
 		return {error: error, value: value};
 	});
-var $toastal$either$Either$Right = function (a) {
-	return {$: 'Right', a: a};
+var $elm$core$Result$Ok = function (a) {
+	return {$: 'Ok', a: a};
 };
 var $author$project$Main$init = {
-	output: $toastal$either$Either$Right(
+	output: $elm$core$Result$Ok(
 		_Utils_Tuple2(6, 1)),
 	srcABV1: A2(
 		$author$project$Main$ABVInput,
-		$toastal$either$Either$Right(12),
+		$elm$core$Result$Ok(12),
 		''),
 	srcABV2: A2(
 		$author$project$Main$ABVInput,
-		$toastal$either$Either$Right(40),
+		$elm$core$Result$Ok(40),
 		''),
 	targetABV: A2(
 		$author$project$Main$ABVInput,
-		$toastal$either$Either$Right(16),
+		$elm$core$Result$Ok(16),
 		'')
 };
 var $elm$core$Result$Err = function (a) {
@@ -4442,9 +4442,6 @@ var $elm$json$Json$Decode$Index = F2(
 	function (a, b) {
 		return {$: 'Index', a: a, b: b};
 	});
-var $elm$core$Result$Ok = function (a) {
-	return {$: 'Ok', a: a};
-};
 var $elm$json$Json$Decode$OneOf = function (a) {
 	return {$: 'OneOf', a: a};
 };
@@ -5157,21 +5154,18 @@ var $elm$browser$Browser$sandbox = function (impl) {
 			view: impl.view
 		});
 };
-var $toastal$either$Either$Left = function (a) {
-	return {$: 'Left', a: a};
-};
 var $author$project$Main$abvInputFromString = function (s) {
 	var _v0 = $elm$core$String$toInt(s);
 	if (_v0.$ === 'Just') {
 		var i = _v0.a;
 		return A2(
 			$author$project$Main$ABVInput,
-			$toastal$either$Either$Right(i),
+			$elm$core$Result$Ok(i),
 			'');
 	} else {
 		return A2(
 			$author$project$Main$ABVInput,
-			$toastal$either$Either$Left(s),
+			$elm$core$Result$Err(s),
 			'Invalid integer number.');
 	}
 };
@@ -5197,12 +5191,12 @@ var $author$project$Main$calcRatio_ = F3(
 		var gcd_ = A2($author$project$Main$gcd, den, num);
 		var cond = ((_Utils_cmp(a, c) > 0) && (_Utils_cmp(c, b) > 0)) || ((_Utils_cmp(b, c) > 0) && (_Utils_cmp(c, a) > 0));
 		if (!den) {
-			return $toastal$either$Either$Left('Source ABV-s must be different.');
+			return $elm$core$Result$Err('Source ABV-s must be different.');
 		} else {
 			if (!cond) {
-				return $toastal$either$Either$Left('Target ABV must be between the range of the two sources.');
+				return $elm$core$Result$Err('Target ABV must be between the range of the two sources.');
 			} else {
-				return $toastal$either$Either$Right(
+				return $elm$core$Result$Ok(
 					_Utils_Tuple2((num / gcd_) | 0, ((den - num) / gcd_) | 0));
 			}
 		}
@@ -5227,34 +5221,21 @@ var $elm$core$Maybe$map3 = F4(
 			}
 		}
 	});
-var $elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
-	});
-var $toastal$either$Either$unwrap = F3(
-	function (d, f, e) {
-		if (e.$ === 'Left') {
-			return d;
-		} else {
-			var a = e.a;
-			return f(a);
-		}
-	});
-var $toastal$either$Either$toMaybeVia = function (f) {
-	return A2(
-		$toastal$either$Either$unwrap,
-		$elm$core$Maybe$Nothing,
-		A2($elm$core$Basics$composeR, f, $elm$core$Maybe$Just));
+var $elm$core$Result$toMaybe = function (result) {
+	if (result.$ === 'Ok') {
+		var v = result.a;
+		return $elm$core$Maybe$Just(v);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
 };
-var $toastal$either$Either$toMaybe = $toastal$either$Either$toMaybeVia($elm$core$Basics$identity);
 var $author$project$Main$calcRatio = function (model) {
-	var c = $toastal$either$Either$toMaybe(model.targetABV.value);
-	var b = $toastal$either$Either$toMaybe(model.srcABV2.value);
-	var a = $toastal$either$Either$toMaybe(model.srcABV1.value);
+	var c = $elm$core$Result$toMaybe(model.targetABV.value);
+	var b = $elm$core$Result$toMaybe(model.srcABV2.value);
+	var a = $elm$core$Result$toMaybe(model.srcABV1.value);
 	var _v0 = A4($elm$core$Maybe$map3, $author$project$Main$calcRatio_, a, b, c);
 	if (_v0.$ === 'Nothing') {
-		return $toastal$either$Either$Left('Not possible to caclulate.');
+		return $elm$core$Result$Err('Not possible to caclulate.');
 	} else {
 		var r = _v0.a;
 		return r;
@@ -5394,7 +5375,7 @@ var $author$project$Main$inputView = F4(
 var $author$project$Main$abvInputView = F3(
 	function (title, f, input) {
 		var _v0 = input.value;
-		if (_v0.$ === 'Left') {
+		if (_v0.$ === 'Err') {
 			var s = _v0.a;
 			return A4($author$project$Main$inputView, title, f, s, input.error);
 		} else {
@@ -5406,6 +5387,11 @@ var $author$project$Main$abvInputView = F3(
 				$elm$core$String$fromInt(v),
 				'');
 		}
+	});
+var $elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
 	});
 var $elm$core$String$cons = _String_cons;
 var $elm$core$String$fromChar = function (_char) {
@@ -5433,7 +5419,7 @@ var $author$project$Main$toPercent = F2(
 	});
 var $author$project$Main$outputView = function (model) {
 	var _v0 = model.output;
-	if (_v0.$ === 'Right') {
+	if (_v0.$ === 'Ok') {
 		var _v1 = _v0.a;
 		var m = _v1.a;
 		var n = _v1.b;
