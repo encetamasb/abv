@@ -1,7 +1,6 @@
 module Main exposing (..)
 
 import Browser
-import Either exposing (Either(..))
 import Html exposing (Html, button, div, input, p, small, span, strong, text)
 import Html.Attributes exposing (style, value)
 import Html.Entity exposing (rArr)
@@ -10,7 +9,7 @@ import Maybe
 
 
 type alias ABVInput =
-    { value : Either String Int
+    { value : Result String Int
     , error : String
     }
 
@@ -19,7 +18,7 @@ type alias Model =
     { srcABV1 : ABVInput
     , srcABV2 : ABVInput
     , targetABV : ABVInput
-    , output : Either String ( Int, Int )
+    , output : Result String ( Int, Int )
     }
 
 
@@ -32,26 +31,26 @@ type Msg
 abvInputFromString s =
     case String.toInt s of
         Just i ->
-            ABVInput (Right i) ""
+            ABVInput (Ok i) ""
 
         Nothing ->
-            ABVInput (Left s) "Invalid integer number."
+            ABVInput (Err s) "Invalid integer number."
 
 
 calcRatio model =
     let
         a =
-            Either.toMaybe model.srcABV1.value
+            Result.toMaybe model.srcABV1.value
 
         b =
-            Either.toMaybe model.srcABV2.value
+            Result.toMaybe model.srcABV2.value
 
         c =
-            Either.toMaybe model.targetABV.value
+            Result.toMaybe model.targetABV.value
     in
     case Maybe.map3 calcRatio_ a b c of
         Nothing ->
-            Left "Not possible to caclulate."
+            Err "Not possible to caclulate."
 
         Just r ->
             r
@@ -82,15 +81,15 @@ calcRatio_ a b c =
     in
     case den of
         0 ->
-            Left "Source ABV-s must be different."
+            Err "Source ABV-s must be different."
 
         _ ->
             case cond of
                 False ->
-                    Left "Target ABV must be between the range of the two sources."
+                    Err "Target ABV must be between the range of the two sources."
 
                 True ->
-                    Right ( num // gcd_, (den - num) // gcd_ )
+                    Ok ( num // gcd_, (den - num) // gcd_ )
 
 
 recalcRatio model =
@@ -121,10 +120,10 @@ inputView title f v err =
 
 abvInputView title f input =
     case input.value of
-        Left s ->
+        Err s ->
             inputView title f s input.error
 
-        Right v ->
+        Ok v ->
             inputView title f (String.fromInt v) ""
 
 
@@ -135,7 +134,7 @@ toPercent x y =
 
 outputView model =
     case model.output of
-        Right ( m, n ) ->
+        Ok ( m, n ) ->
             div []
                 [ text rArr
                 , small [ style "margin-left" "5px", style "margin-right" "10px" ]
@@ -151,7 +150,7 @@ outputView model =
                     ]
                 ]
 
-        Left err ->
+        Err err ->
             div []
                 [ p [] [ text err ] ]
 
@@ -168,10 +167,10 @@ view model =
 
 init : Model
 init =
-    { srcABV1 = ABVInput (Right 12) ""
-    , srcABV2 = ABVInput (Right 40) ""
-    , targetABV = ABVInput (Right 16) ""
-    , output = Right ( 6, 1 )
+    { srcABV1 = ABVInput (Ok 12) ""
+    , srcABV2 = ABVInput (Ok 40) ""
+    , targetABV = ABVInput (Ok 16) ""
+    , output = Ok ( 6, 1 )
     }
 
 
