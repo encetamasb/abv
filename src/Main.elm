@@ -1,17 +1,14 @@
-module Main exposing (..)
+module Main exposing (main)
 
 import Browser
 import Html exposing (Html, button, div, input, p, small, span, strong, text)
 import Html.Attributes exposing (style, value)
 import Html.Entity exposing (rArr)
 import Html.Events exposing (onInput)
-import Maybe
 
 
 type alias ABVInput =
-    { value : Result String Int
-    , error : String
-    }
+    Result ( String, String ) Int
 
 
 type alias Model =
@@ -23,37 +20,28 @@ type alias Model =
 
 
 type Msg
-    = ChangeABV1 String
-    | ChangeABV2 String
-    | ChangeTargetABV String
+    = ABV1Changed String
+    | ABV2Changed String
+    | TargetABVChanged String
 
 
 abvInputFromString s =
     case String.toInt s of
         Just i ->
-            ABVInput (Ok i) ""
+            Ok i
 
         Nothing ->
-            ABVInput (Err s) "Invalid integer number."
+            Err ( s, "Invalid integer number." )
 
 
+calcRatio : Model -> Result String ( Int, Int )
 calcRatio model =
-    let
-        a =
-            Result.toMaybe model.srcABV1.value
+    case ( model.srcABV1, model.srcABV2, model.targetABV ) of
+        ( Ok a, Ok b, Ok c ) ->
+            calcRatio_ a b c
 
-        b =
-            Result.toMaybe model.srcABV2.value
-
-        c =
-            Result.toMaybe model.targetABV.value
-    in
-    case Maybe.map3 calcRatio_ a b c of
-        Nothing ->
+        _ ->
             Err "Not possible to caclulate."
-
-        Just r ->
-            r
 
 
 gcd : Int -> Int -> Int
@@ -65,33 +53,34 @@ gcd a b =
         gcd b (remainderBy b a)
 
 
+calcRatio_ : Int -> Int -> Int -> Result String ( Int, Int )
 calcRatio_ a b c =
     let
-        num =
-            c - b
-
         den =
             a - b
-
-        gcd_ =
-            gcd den num
 
         cond =
             ((a > c) && (c > b)) || ((b > c) && (c > a))
     in
-    case den of
-        0 ->
+    case ( den, cond ) of
+        ( 0, _ ) ->
             Err "Source ABV-s must be different."
 
-        _ ->
-            case cond of
-                False ->
-                    Err "Target ABV must be between the range of the two sources."
+        ( _, False ) ->
+            Err "Target ABV must be between the range of the two sources."
 
-                True ->
-                    Ok ( num // gcd_, (den - num) // gcd_ )
+        ( _, True ) ->
+            let
+                num =
+                    c - b
+
+                gcd_ =
+                    gcd den num
+            in
+            Ok ( num // gcd_, (den - num) // gcd_ )
 
 
+recalcRatio : Model -> Model
 recalcRatio model =
     { model | output = calcRatio model }
 
@@ -99,32 +88,32 @@ recalcRatio model =
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        ChangeABV1 s ->
+        ABV1Changed s ->
             recalcRatio { model | srcABV1 = abvInputFromString s }
 
-        ChangeABV2 s ->
+        ABV2Changed s ->
             recalcRatio { model | srcABV2 = abvInputFromString s }
 
-        ChangeTargetABV s ->
+        TargetABVChanged s ->
             recalcRatio { model | targetABV = abvInputFromString s }
 
 
-inputView title f v err =
+inputView title msg v err =
     div []
         [ span [ style "margin-right" "5px" ] [ text title ]
-        , input [ value v, onInput f ] []
+        , input [ value v, onInput msg ] []
         , text "%"
         , p [] [ text err ]
         ]
 
 
-abvInputView title f input =
-    case input.value of
-        Err s ->
-            inputView title f s input.error
+abvInputView title msg input =
+    case input of
+        Err ( v, error ) ->
+            inputView title msg v error
 
         Ok v ->
-            inputView title f (String.fromInt v) ""
+            inputView title msg (String.fromInt v) ""
 
 
 toPercent : Int -> Int -> Int
@@ -135,17 +124,21 @@ toPercent x y =
 outputView model =
     case model.output of
         Ok ( m, n ) ->
+            let
+                p =
+                    toPercent m (m + n)
+            in
             div []
                 [ text rArr
                 , small [ style "margin-left" "5px", style "margin-right" "10px" ]
                     [ strong [] [ text "A " ]
-                    , text <| "(~" ++ (String.fromInt <| toPercent m (m + n)) ++ "%)"
+                    , text <| "(~" ++ (String.fromInt <| p) ++ "%)"
                     ]
                 , text (String.fromInt m)
                 , text ":"
                 , text (String.fromInt n)
                 , small [ style "margin-left" "10px" ]
-                    [ text <| "(~" ++ (String.fromInt <| 100 - toPercent m (m + n)) ++ "%)"
+                    [ text <| "(~" ++ (String.fromInt <| 100 - p) ++ "%)"
                     , strong [] [ text " B" ]
                     ]
                 ]
@@ -158,18 +151,18 @@ outputView model =
 view : Model -> Html Msg
 view model =
     div [ style "padding" "10px" ]
-        [ abvInputView "A" ChangeABV1 model.srcABV1
-        , abvInputView "B" ChangeABV2 model.srcABV2
-        , abvInputView "C" ChangeTargetABV model.targetABV
+        [ abvInputView "A" ABV1Changed model.srcABV1
+        , abvInputView "B" ABV2Changed model.srcABV2
+        , abvInputView "C" TargetABVChanged model.targetABV
         , outputView model
         ]
 
 
 init : Model
 init =
-    { srcABV1 = ABVInput (Ok 12) ""
-    , srcABV2 = ABVInput (Ok 40) ""
-    , targetABV = ABVInput (Ok 16) ""
+    { srcABV1 = Ok 12
+    , srcABV2 = Ok 40
+    , targetABV = Ok 16
     , output = Ok ( 6, 1 )
     }
 
